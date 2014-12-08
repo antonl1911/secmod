@@ -1,7 +1,8 @@
 secmod
 ======
 
-Small module and userspace program to prevent predefined apps from running
+Small module and userspace program to prevent predefined apps from running.
+
 You need kernel headers installed (sudo apt-get install linux-headers-$(uname -r).
 Also, gcc is a must (sudo apt-get install gcc).
 Compile by running 'make'. Then "insmod ./secmod.ko", and launch "./seccon_user".
