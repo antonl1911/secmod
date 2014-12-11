@@ -22,6 +22,7 @@
 	pr_info("[" KBUILD_MODNAME "] " fmt)
 
 #define NETLINK_USER 31
+#define WAIT_PERIOD 500
 /*
  * Why not to copy all operations by "original_security_ops = *ops" ?
  * Because copying byte array is not atomic. Reader checks
@@ -45,6 +46,7 @@ static struct netlink_kernel_cfg cfg = {
 };
 #endif
 DEFINE_SEMAPHORE(nl_mutex);
+DECLARE_WAIT_QUEUE_HEAD(wq);
 /**
  * seccon_nl_send_msg - sends plain char message to process pid
  */ 
@@ -99,13 +101,14 @@ static int seccon_bprm_check_security(struct linux_binprm *bprm)
 	/*
 	 * Block here until answer is received or client unregistered
 	 */
-
-	while (!cond_var)
-	{
-		schedule();
+	res = wait_event_interruptible_timeout(wq, cond_var != 0, msecs_to_jiffies(WAIT_PERIOD) );
+	/* Timeout reached */
+	if (0 == res) {
+		client_pid = 0;
+		cond_var = eAllow;
 	}
 
-	/* Critical section end, we got the answer */
+	/* Critical section end, we got the answer or timeout happened */
 	up(&nl_mutex);
 
 	if(cond_var == eDeny)
@@ -156,6 +159,7 @@ static void seccon_nl_recv_msg(struct sk_buff *skb)
 		default:
 			break;
 	}
+	wake_up_interruptible(&wq);
 }
 /**
  * seccon_init - get security ops, open Netlink socket
