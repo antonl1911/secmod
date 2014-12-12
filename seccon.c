@@ -16,8 +16,6 @@
 #include "seccon.h"
 
 #define debug(fmt, ...) (0)
-/*#define debug(fmt...) \
-	pr_info("[" KBUILD_MODNAME "] " fmt)*/
 #define mprintk(fmt...) \
 	pr_info("[" KBUILD_MODNAME "] " fmt)
 
